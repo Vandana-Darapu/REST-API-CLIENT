@@ -1,0 +1,39 @@
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.json.JSONObject;
+
+public class WeatherClient {
+    private static final String API_KEY = "YOUR_API_KEY"; // Replace with your real API key
+    private static final String LOCATION = "London";
+    private static final String URL = "http://api.weatherapi.com/v1/current.json?key=" + API_KEY + "&q=" + LOCATION;
+
+    public static void main(String[] args) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(URL))
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JSONObject json = new JSONObject(response.body());
+                JSONObject location = json.getJSONObject("location");
+                JSONObject current = json.getJSONObject("current");
+
+                System.out.println("Weather Info for " + location.getString("name") + ", " + location.getString("country"));
+                System.out.println("Temperature (C): " + current.getDouble("temp_c"));
+                System.out.println("Condition: " + current.getJSONObject("condition").getString("text"));
+                System.out.println("Humidity: " + current.getInt("humidity") + "%");
+                System.out.println("Wind (kph): " + current.getDouble("wind_kph"));
+            } else {
+                System.out.println("Error: HTTP " + response.statusCode());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
